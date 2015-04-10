@@ -95,7 +95,7 @@ program.Command.prototype.version = function(str, flags) {
 
   this.option(flags, 'output the version number');
   this.on('version', function() {
-    process.stdout.write(colors.info('  Version 'str + '\n'));
+    process.stdout.write(colors.info('  Version ' + str + '\n'));
     process.exit(0);
   });
 
@@ -128,7 +128,7 @@ if (!process.argv.slice(2).length) {
     process.exit(1);
 }
 
-/*exec('grunt serve', function (error, stdout, stderr) {
+exec('grunt serve', function (error, stdout, stderr) {
 	if(error !== null){
 		console.log(error);
 		process.exit(1);
@@ -139,5 +139,5 @@ if (!process.argv.slice(2).length) {
 	if(stderr){
 		console.log(stderr);
 	}
-});*/
+});
 	
