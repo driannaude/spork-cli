@@ -1,0 +1,316 @@
+#!/usr/bin/env node
+
+// Define Globals
+var program,
+	Git,
+	fs,
+	prompt,
+	colors,
+	exec,
+	ProgressBar,
+	cloneOptions,
+	dirPath,
+	args,
+	name,
+	where,
+	inDirectory;
+
+// Dependencies
+program 	= require('commander');
+Git 		= require('nodegit');
+fs 			= require('fs');
+prompt 		= require('prompt');
+colors 		= require('colors');
+exec 		= require('child-process-promise').exec;
+ProgressBar = require('progress');
+ 
+
+ 
+colors.setTheme({
+  input: 'grey',
+  verbose: 'cyan',
+  prompt: 'grey',
+  info: 'green',
+  highlight: 'magenta',
+  data: 'grey',
+  help: 'cyan',
+  warn: 'yellow',
+  debug: 'blue',
+  error: 'red'
+});
+
+
+//Helper Functions and Prototype extensions for commander
+
+var largestWidth = 0;
+
+function setLargestWidth(value){
+	if(value > largestWidth){
+		largestWidth = value;
+	}
+}
+
+function pad(str, width) {
+  var len = Math.max(0, width - str.length);
+  return str + ' ' + Array(len + 1).join(colors.data('.'));
+}
+
+program.Command.prototype.helpInformation = function() {
+  var desc = [];
+  if (this._description) {
+    desc = [
+      '  ' + this._description
+      , ''
+    ];
+  }
+
+  var cmdName = this._name;
+  if (this._alias) {
+    cmdName = cmdName + '|' + this._alias;
+  }
+  var usage = [
+    ''
+    ,'  ' + this.usage()
+    , ''
+  ];
+
+  var cmds = [];
+  var commandHelp = this.commandHelp();
+  if (commandHelp) cmds = [commandHelp];
+
+  var options = [
+    '  '+ colors.info('Options:')
+    , ''
+    , '' + this.optionHelp().replace(/^/gm, '    ')
+    , ''
+    , ''
+  ];
+
+  return usage
+    .concat(cmds)
+    .concat(desc)
+    .concat(options)
+    .join('\n');
+};
+
+program.Command.prototype.optionHelp = function() {
+  var width = this.largestOptionLength();
+  setLargestWidth(width);
+
+  // Prepend the help information
+  return [colors.warn(pad('-h, --help', largestWidth)) + colors.data('.......... ') + 'show this help dialogue']
+    .concat(this.options.map(function(option) {
+      return colors.warn(pad(option.flags, largestWidth)) + colors.data('.......... ') + option.description;
+      }))
+    .join('\n');
+};
+
+program.Command.prototype.version = function(str, flags) {
+  if (0 == arguments.length) return this._version;
+  this._version = str;
+  flags = flags || '-V, --version';
+
+  this.option(flags, 'output the version number');
+  this.on('version', function() {
+    process.stdout.write(str + '\n');
+    process.exit(0);
+  });
+
+  return this;
+};
+
+program.on('--help', function(){
+
+  console.log(colors.info('  Arguments:'));
+  console.log('');
+  
+  console.log('    '+colors.warn(pad('[options]',largestWidth)) + colors.data('.......... ') + 'the options/flags you would like to enable for your project');
+  console.log('    '+colors.warn(pad('[name]',largestWidth)) + colors.data('.......... ') + 'The name you want to use for your project');
+  console.log('    '+colors.warn(pad('<PATH>',largestWidth))+ colors.data('.......... ') +'The directory you would like to store your project in, relative to the cwd');
+
+  console.log('');
+  console.log(colors.blue('  Example: spork\ create [project-name] [directory]:'));
+  console.log('');
+
+});
+
+program
+  .version('0.1.0')
+  .usage(colors.highlight('Usage: spork create [options] [name] <path>'))
+  .parse(process.argv);
+
+
+
+ 
+program.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+    process.exit(1);
+}
+
+//Process Arguments
+args = process.argv.slice(2);
+name = args[0];
+
+if(args.length > 1){
+	dirPath = args[1];
+} else {
+	dirPath = '';
+}
+
+
+var lastChar = dirPath.substr(-1);
+if(dirPath.length == 1 && lastChar == '.') {
+	where = name;
+	whereDesc = 'current directory';
+} else if (dirPath.length && lastChar !== '/') {
+   where = dirPath + '/' + name;
+   whereDesc = '"'+where+'"';
+
+} else {
+	where = dirPath + name;
+	whereDesc = '"'+where+'"';
+}
+
+console.log(colors.info('  Creating "'+ name +'" in ' + whereDesc));
+
+//Main Repo:
+//https://github.com/driannaude/spork
+cloneOptions = {};
+cloneOptions.remoteCallbacks = {
+  certificateCheck: function() { 
+  	return 1; 
+  },
+  transferProgress: function(info){
+  	
+  	if(!bar){
+  		var bar = new ProgressBar('  Fetching from GitHub: [:bar] :percent', {
+	    	complete: '=',
+	    	incomplete: ' ',
+	    	width: 40,
+	    	total: info.totalObjects()
+  		});
+  	}
+	if(info.receivedObjects() < info.totalObjects()){
+		bar.tick(info.receivedObjects());
+	} else {
+		process.stdout.clearLine();
+		process.stdout.cursorTo(0);
+		process.stdout.write(colors.info('  Received '+info.receivedObjects() + '/' + info.totalObjects() + ' Objects...'))
+	}
+  	
+  }
+};
+
+function runBowerInstall(){
+	console.log(colors.info('  Running bower install. Please Wait...'));
+	exec('bower install')
+		.then(function (result) {
+
+			var stdout = result.stdout;
+			var stderr = result.stderr;
+			console.log('  ' + colors.data(stdout));
+			console.log('  ' + colors.error(stderr));
+			console.log('\n');
+			console.log(colors.info('  All Done!'));
+			process.exit(1);
+
+		}).fail(function(error){
+		
+			console.error(colors.error('ERROR: ', error));
+
+		}); 
+}
+
+function runNPMInstall(){
+  console.log(colors.info('  Running npm install. Please Wait...'));
+  exec('npm install')
+    .then(function (result) {
+	    var stdout = result.stdout;
+	    var stderr = result.stderr;
+	    console.log('  ' + colors.data(stdout));
+	    console.log('  ' + colors.error(stderr));
+	    runBowerInstall();
+
+  	}).fail(function (error){
+  		
+  		console.error(colors.error('ERROR: ', error));
+
+	});
+
+}
+
+function runBuild(error){
+	if(error && error !== null){
+		console.log(colors.error('  '+error+' - exiting...'));
+		process.exit(1);	
+	}
+	
+	if(process.cwd() !== inDirectory){
+		console.log(colors.info('  Changing into project directory...'));
+		process.chdir(where);
+		inDirectory = process.cwd();
+	}
+	runNPMInstall();
+	
+}
+
+function deleteFolderRecursive(path,callback) {
+  if( fs.existsSync(path) ) {
+    fs.readdirSync(path).forEach(function(file,index){
+      var curPath = path + "/" + file;
+      if(fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+    if(typeof callback == 'function'){
+    	callback();
+    }
+  }
+};
+
+fs.exists(where, function(exists) {
+    if (exists) {
+    	prompt.message = '';
+    	prompt.delimiter = '';
+    	prompt.start();
+    	
+    	prompt.get([{
+	      		name: 'overwrite',
+	      		description: colors.info('  ' + where + ' already exists. Would you like to overwrite it?'),
+	      		required: true,
+	      		default: 'no'
+	    	}], function (err, result) {
+		    	// Check response
+		    	if(result.overwrite == 'yes'){
+		    		console.log('');
+		    		deleteFolderRecursive(where, cloneRepo);
+		    		
+		    	} else {
+		    		console.log(colors.error('  You chose not to overwrite ' + where + '. Exiting...'));
+		    		process.exit(1);
+		    	}
+		    	
+		    	
+		});
+    } else {
+    	cloneRepo();
+    }
+});
+
+function cloneRepo(){
+
+//Git clone with a promise.
+Git.Clone("https://github.com/driannaude/spork", where, cloneOptions).then(function(repository) {
+  // Work with the repository object here.
+  console.log('\n');
+  runBuild();
+},function(error){
+  // Error Handling
+  runBuild(error);
+});
+}
