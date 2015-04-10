@@ -72,7 +72,7 @@ program.Command.prototype.helpInformation = function() {
   }
   var usage = [
     ''
-    ,'  ' + this.usage()
+    ,this.usage()
     , ''
   ];
 
@@ -81,7 +81,7 @@ program.Command.prototype.helpInformation = function() {
   if (commandHelp) cmds = [commandHelp];
 
   var options = [
-    '  '+ colors.info('Options:')
+    colors.info('Options:')
     , ''
     , '' + this.optionHelp().replace(/^/gm, '    ')
     , ''
@@ -114,7 +114,7 @@ program.Command.prototype.version = function(str, flags) {
 
   this.option(flags, 'output the version number');
   this.on('version', function() {
-    process.stdout.write(colors.info('  Version ' + str + '\n'));
+    process.stdout.write(colors.info('Version ' + str + '\n'));
     process.exit(0);
   });
 
@@ -123,7 +123,7 @@ program.Command.prototype.version = function(str, flags) {
 
 program.on('--help', function(){
 
-  console.log(colors.info('  Arguments:'));
+  console.log(colors.info('Arguments:'));
   console.log('');
   
   console.log('    '+colors.warn(pad('[options]',largestWidth)) + colors.data('.......... ') + 'the options/flags you would like to enable for your project');
@@ -131,7 +131,7 @@ program.on('--help', function(){
   console.log('    '+colors.warn(pad('<PATH>',largestWidth))+ colors.data('.......... ') +'The directory you would like to store your project in, relative to the cwd');
 
   console.log('');
-  console.log(colors.blue('  Example: spork\ create [project-name] [directory]:'));
+  console.log(colors.blue('Example: spork\ create [project-name] [directory]:'));
   console.log('');
 
 });

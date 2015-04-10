@@ -78,7 +78,7 @@ program.Command.prototype.helpInformation = function() {
   }
   var usage = [
     ''
-    ,'  ' + this.usage()
+    ,this.usage()
     , ''
   ];
 
@@ -87,7 +87,7 @@ program.Command.prototype.helpInformation = function() {
   if (commandHelp) cmds = [commandHelp];
 
   var options = [
-    '  '+ colors.info('Options:')
+    colors.info('Options:')
     , ''
     , '' + this.optionHelp().replace(/^/gm, '    ')
     , ''
@@ -154,7 +154,7 @@ program.Command.prototype.commandHelp = function() {
   setLargestWidth(width);
   return [
       ''
-    , '  '+colors.info('Commands:')
+    , colors.info('Commands:')
     , ''
     , commands.map(function(cmd) {
       return colors.warn(pad(cmd[0], largestWidth)) + colors.data('.......... ') + cmd[1];
@@ -167,12 +167,12 @@ program.Command.prototype.commandHelp = function() {
 
  
 console.log('');
-console.log('   ____                   _    ');
-console.log('  / ___| _ __   ___  _ __| | __');
-console.log('  \\___ \\| \'_ \\ / _ \\| \'__| |/ /');
-console.log('   ___) | |_) | (_) | |  |   < ');
-console.log('  |____/| .__/ \\___/|_|  |_|\\_\\  CLI version '+pjson.version)
-console.log('  ======|_|=====================')
+console.log(' ____                   _    ');
+console.log('/ ___| _ __   ___  _ __| | __');
+console.log('\\___ \\| \'_ \\ / _ \\| \'__| |/ /');
+console.log(' ___) | |_) | (_) | |  |   < ');
+console.log('|____/| .__/ \\___/|_|  |_|\\_\\  CLI version '+pjson.version)
+console.log('======|_|=====================')
 console.log('');
 program
   .version(pjson.version)
@@ -184,13 +184,13 @@ program
 program.parse(process.argv);
 
 program.on('--help', function(){
-  console.log(colors.blue('  Example: spork\ create mySpork projects/new/'));
+  console.log(colors.blue('Example: spork\ create mySpork projects/new/'));
   console.log('');
 });
 
 if (!process.argv.slice(2).length) {
     console.log('');
-    console.log(colors.error('  [ERROR] ') + 'Please Specify a Command.');
+    console.log(colors.error('[ERROR] ') + 'Please Specify a Command.');
     console.log('');
     program.help();
   }
