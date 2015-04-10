@@ -107,26 +107,19 @@ program.on('--help', function(){
   console.log(colors.info('  Arguments:'));
   console.log('');
   
-  console.log('    '+colors.warn(pad('[options]',largestWidth)) + colors.data('.......... ') + 'the options/flags you would like to enable for your project');
-  console.log('    '+colors.warn(pad('[name]',largestWidth)) + colors.data('.......... ') + 'The name you want to use for your project');
-  console.log('    '+colors.warn(pad('<PATH>',largestWidth))+ colors.data('.......... ') +'The directory you would like to store your project in, relative to the cwd');
-
+  console.log('    '+colors.warn(pad('[options]',largestWidth)) + colors.data('.......... ') + 'the options/flags you would like to enable for the serve session');
+  
   console.log('');
-  console.log(colors.blue('  Example: spork\ create [project-name] [directory]:'));
+  console.log(colors.blue('  Example: spork\ serve [options]:'));
   console.log('');
 
 });
 
 program
   .version(pjson.version)
-  .usage(colors.highlight('Usage: spork create [options] [name] <path>'))
+  .usage(colors.highlight('Usage: spork serve [options]'))
   .parse(process.argv);
 
-
-if (!process.argv.slice(2).length) {
-    program.outputHelp();
-    process.exit(1);
-}
 
 exec('grunt serve', function (error, stdout, stderr) {
 	if(error !== null){
