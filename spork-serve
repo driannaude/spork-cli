@@ -1,0 +1,143 @@
+#!/usr/bin/env node
+
+var program,
+	colors,
+	exec,
+	pjson;
+
+program = require('commander');
+colors 	= require('colors');
+exec 	= require('child_process').exec;
+pjson 	= require('./package.json')
+ 
+colors.setTheme({
+  input: 'grey',
+  verbose: 'cyan',
+  prompt: 'grey',
+  info: 'green',
+  highlight: 'magenta',
+  data: 'grey',
+  help: 'cyan',
+  warn: 'yellow',
+  debug: 'blue',
+  error: 'red'
+});
+
+//Helper Functions and Prototype extensions for commander
+
+var largestWidth = 0;
+
+function setLargestWidth(value){
+	if(value > largestWidth){
+		largestWidth = value;
+	}
+}
+
+function pad(str, width) {
+  var len = Math.max(0, width - str.length);
+  return str + ' ' + Array(len + 1).join(colors.data('.'));
+}
+
+program.Command.prototype.helpInformation = function() {
+  var desc = [];
+  if (this._description) {
+    desc = [
+      '  ' + this._description
+      , ''
+    ];
+  }
+
+  var cmdName = this._name;
+  if (this._alias) {
+    cmdName = cmdName + '|' + this._alias;
+  }
+  var usage = [
+    ''
+    ,'  ' + this.usage()
+    , ''
+  ];
+
+  var cmds = [];
+  var commandHelp = this.commandHelp();
+  if (commandHelp) cmds = [commandHelp];
+
+  var options = [
+    '  '+ colors.info('Options:')
+    , ''
+    , '' + this.optionHelp().replace(/^/gm, '    ')
+    , ''
+    , ''
+  ];
+
+  return usage
+    .concat(cmds)
+    .concat(desc)
+    .concat(options)
+    .join('\n');
+};
+
+program.Command.prototype.optionHelp = function() {
+  var width = this.largestOptionLength();
+  setLargestWidth(width);
+
+  // Prepend the help information
+  return [colors.warn(pad('-h, --help', largestWidth)) + colors.data('.......... ') + 'show this help dialogue']
+    .concat(this.options.map(function(option) {
+      return colors.warn(pad(option.flags, largestWidth)) + colors.data('.......... ') + option.description;
+      }))
+    .join('\n');
+};
+
+program.Command.prototype.version = function(str, flags) {
+  if (0 == arguments.length) return this._version;
+  this._version = str;
+  flags = flags || '-V, --version';
+
+  this.option(flags, 'output the version number');
+  this.on('version', function() {
+    process.stdout.write(colors.info('  Version 'str + '\n'));
+    process.exit(0);
+  });
+
+  return this;
+};
+
+program.on('--help', function(){
+
+  console.log(colors.info('  Arguments:'));
+  console.log('');
+  
+  console.log('    '+colors.warn(pad('[options]',largestWidth)) + colors.data('.......... ') + 'the options/flags you would like to enable for your project');
+  console.log('    '+colors.warn(pad('[name]',largestWidth)) + colors.data('.......... ') + 'The name you want to use for your project');
+  console.log('    '+colors.warn(pad('<PATH>',largestWidth))+ colors.data('.......... ') +'The directory you would like to store your project in, relative to the cwd');
+
+  console.log('');
+  console.log(colors.blue('  Example: spork\ create [project-name] [directory]:'));
+  console.log('');
+
+});
+
+program
+  .version(pjson.version)
+  .usage(colors.highlight('Usage: spork create [options] [name] <path>'))
+  .parse(process.argv);
+
+
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+    process.exit(1);
+}
+
+/*exec('grunt serve', function (error, stdout, stderr) {
+	if(error !== null){
+		console.log(error);
+		process.exit(1);
+	}
+	if(stdout !== null) {
+		console.log(stdout);
+	}
+	if(stderr){
+		console.log(stderr);
+	}
+});*/
+	

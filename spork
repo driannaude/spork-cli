@@ -9,11 +9,16 @@
 // =============================
 
 //Define Globals
-var program;
+var program,
+	colors,
+	exec,
+	pjson;
 //Set Dependencies
 program = require("commander");
-colors = require('colors');
- 
+colors 	= require('colors');
+exec 	= require('child_process').exec;
+pjson = require('./package.json');
+
 colors.setTheme({
   input: 'grey',
   verbose: 'cyan',
@@ -115,7 +120,7 @@ program.Command.prototype.version = function(str, flags) {
   flags = flags || '-V, --version';
   this.option(flags, 'output the version number');
   this.on('version', function() {
-    process.stdout.write(str + '\n');
+    process.stdout.write(colors.info('  Version '+str + '\n'));
     process.exit(0);
   });
   return this;
@@ -166,13 +171,15 @@ console.log('   ____                   _    ');
 console.log('  / ___| _ __   ___  _ __| | __');
 console.log('  \\___ \\| \'_ \\ / _ \\| \'__| |/ /');
 console.log('   ___) | |_) | (_) | |  |   < ');
-console.log('  |____/| .__/ \\___/|_|  |_|\\_\\  CLI version 0.1.0')
-console.log('  =============================');
+console.log('  |____/| .__/ \\___/|_|  |_|\\_\\  CLI version '+pjson.version)
+console.log('  ======|_|=====================')
 console.log('');
 program
-  .version('0.0.1')
+  .version(pjson.version)
   .usage(colors.highlight('Usage: spork [command]'))
-  .command('create [options] <PATH>', 'Creates a new spork Project');
+  .command('create [options] <PATH>', 'Creates a new spork Project')
+  .command('serve [options]','Serves your spork using grunt.');
+
   
 program.parse(process.argv);
 
