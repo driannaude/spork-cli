@@ -4,9 +4,8 @@
 
 Built with [Bootstrap](https://www.getbootstrap.com), [AngularJS](https://www.angularjs.org), [Grunt](https://www.gruntjs.com), [Bower](https://www.bower.io), [Flexboxgrid](https://www.flexboxgrid.com), and [Animate.css](https://http://daneden.github.io/animate.css/).
 An experiment in increasing productivity and optimizing workflow. 
-__
-Spork is very much in the early stages of development, so please tread carefully, here be dragons and disorder.
-__
+
+__Spork is very much in the early stages of development, so please tread carefully, here be dragons and disorder.__
 
 
 ### Installation
