@@ -1,6 +1,6 @@
 {
   "name": "spork-cli",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "A command line tool for setting up automated workflow on the front end using Bower, NPM, Bootstrap and Angular",
   "main": "spork.js",
   "dependencies": {
