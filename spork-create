@@ -23,6 +23,7 @@ fs 			    = require('fs');
 prompt 		  = require('prompt');
 colors 		  = require('colors');
 exec 		    = require('child-process-promise').exec;
+execSync    = require('child_process').exec;
 ProgressBar = require('progress');
 pjson       = require('./package.json');
  
@@ -171,7 +172,7 @@ if(dirPath.length == 1 && lastChar == '.') {
 	whereDesc = '"'+where+'"';
 }
 
-console.log(colors.info('  Creating "'+ name +'" in ' + whereDesc));
+console.log(colors.info('Creating "'+ name +'" in ' + whereDesc));
 
 //Main Repo:
 //https://github.com/driannaude/spork
@@ -183,7 +184,7 @@ cloneOptions.remoteCallbacks = {
   transferProgress: function(info){
   	
   	if(!bar){
-  		var bar = new ProgressBar('  Fetching from GitHub: [:bar] :percent', {
+  		var bar = new ProgressBar('Fetching from GitHub: [:bar] :percent', {
 	    	complete: '=',
 	    	incomplete: ' ',
 	    	width: 40,
@@ -195,23 +196,23 @@ cloneOptions.remoteCallbacks = {
 	} else {
 		process.stdout.clearLine();
 		process.stdout.cursorTo(0);
-		process.stdout.write(colors.info('  Received '+info.receivedObjects() + '/' + info.totalObjects() + ' Objects...'))
+		process.stdout.write(colors.info('Received '+info.receivedObjects() + '/' + info.totalObjects() + ' Objects...'))
 	}
   	
   }
 };
 
 function runBowerInstall(){
-	console.log(colors.info('  Running bower install. Please Wait...'));
+	console.log(colors.info('Running bower install. Please Wait...'));
 	exec('bower install')
 		.then(function (result) {
 
 			var stdout = result.stdout;
 			var stderr = result.stderr;
-			console.log('  ' + colors.data(stdout));
-			console.log('  ' + colors.error(stderr));
-			console.log('\n');
-			console.log(colors.info('  All Done!'));
+			console.log(colors.data(stdout));
+			console.log(colors.error(stderr));
+      console.log(colors.data('＼（Ｔ∇Ｔ）／'));
+			console.log(colors.info('All Done!'));
 			process.exit(1);
 
 		}).fail(function(error){
@@ -222,13 +223,13 @@ function runBowerInstall(){
 }
 
 function runNPMInstall(){
-  console.log(colors.info('  Running npm install. Please Wait...'));
+  console.log(colors.info('Running npm install. Please Wait...'));
   exec('npm install')
     .then(function (result) {
 	    var stdout = result.stdout;
 	    var stderr = result.stderr;
-	    console.log('  ' + colors.data(stdout));
-	    console.log('  ' + colors.error(stderr));
+	    console.log(colors.data(stdout));
+	    console.log(colors.error(stderr));
 	    runBowerInstall();
 
   	}).fail(function (error){
@@ -241,12 +242,12 @@ function runNPMInstall(){
 
 function runBuild(error){
 	if(error && error !== null){
-		console.log(colors.error('  '+error+' - exiting...'));
+		console.log(colors.error(error+' - exiting...'));
 		process.exit(1);	
 	}
 	
 	if(process.cwd() !== inDirectory){
-		console.log(colors.info('  Changing into project directory...'));
+		console.log(colors.info('Changing into project directory...'));
 		process.chdir(where);
 		inDirectory = process.cwd();
 	}
@@ -271,7 +272,69 @@ function deleteFolderRecursive(path,callback) {
   }
 };
 
-fs.exists(where, function(exists) {
+function checkIfBowerIsInstalled(){
+  console.log(colors.verbose('Checking if package Bower is installed...'));
+  var child = execSync('npm list -g bower');
+  child.stdout.on('data',function(data){
+    if(data.indexOf('(empty)') !== -1){
+      
+      prompt.message = '';
+        prompt.delimiter = '';
+        prompt.start();
+        
+        prompt.get([{
+              name: 'bower',
+              description: colors.info('Bower is not installed, and is required. Would you like to install it now?'),
+              required: true,
+              default: 'yes'
+          }], function (err, result) {
+            // Check response
+            if(result.bower == 'yes'){
+              
+              console.log('');
+              installBower();
+              
+            } else {
+              console.log(colors.error('Bower is required to use Spork. Please install it before continuing'));
+              process.exit(1);
+            }
+            
+            
+      });
+    } else {
+      console.log(colors.info('Bower detected. Moving On....'));
+      checkIfProjectExists();
+    }
+
+  });
+  child.stderr.on('data', function(data){
+    console.log(colors.error(data));
+  });
+}
+
+// Methods
+function installBower(){
+  console.log(colors.info('Installing Bower. Please Wait...'));
+  var child = execSync('npm install -g bower');
+  child.stdout.on('data',function(data){
+    console.log(colors.data(data));
+  });
+  child.stderr.on('data',function(data){
+    console.log(colors.error(data));
+  });
+  child.on('close',function(code){
+    if(code !== null){
+      checkIfProjectExists();
+    } else {
+      console.log(colors.error(child.stderr));
+      console.log(colors.error('Oops! Something must have gone wrong...'));
+    }
+  })
+}
+
+
+function checkIfProjectExists(){
+  fs.exists(where, function(exists) {
     if (exists) {
     	prompt.message = '';
     	prompt.delimiter = '';
@@ -279,7 +342,7 @@ fs.exists(where, function(exists) {
     	
     	prompt.get([{
 	      		name: 'overwrite',
-	      		description: colors.info('  ' + where + ' already exists. Would you like to overwrite it?'),
+	      		description: colors.info(where + ' already exists. Would you like to overwrite it?'),
 	      		required: true,
 	      		default: 'no'
 	    	}], function (err, result) {
@@ -289,7 +352,7 @@ fs.exists(where, function(exists) {
 		    		deleteFolderRecursive(where, cloneRepo);
 		    		
 		    	} else {
-		    		console.log(colors.error('  You chose not to overwrite ' + where + '. Exiting...'));
+		    		console.log(colors.error('You chose not to overwrite ' + where + '. Exiting...'));
 		    		process.exit(1);
 		    	}
 		    	
@@ -298,7 +361,9 @@ fs.exists(where, function(exists) {
     } else {
     	cloneRepo();
     }
-});
+  });
+
+}
 
 function cloneRepo(){
 
@@ -312,3 +377,5 @@ Git.Clone("https://github.com/driannaude/spork", where, cloneOptions).then(funct
   runBuild(error);
 });
 }
+
+checkIfBowerIsInstalled();

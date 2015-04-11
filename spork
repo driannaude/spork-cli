@@ -12,12 +12,14 @@
 var program,
 	colors,
 	exec,
-	pjson;
+	pjson,
+	prompt;
 //Set Dependencies
-program = require("commander");
+program = require('commander');
 colors 	= require('colors');
 exec 	= require('child_process').exec;
-pjson = require('./package.json');
+pjson 	= require('./package.json');
+prompt 	= require('prompt');
 
 colors.setTheme({
   input: 'grey',
@@ -178,7 +180,8 @@ program
   .version(pjson.version)
   .usage(colors.highlight('Usage: spork [command]'))
   .command('create [options] <PATH>', 'Creates a new spork Project')
-  .command('serve [options]','Serves your spork using grunt.');
+  .command('serve [options]','Serves your spork using grunt.')
+  .option('-b, --bower', 'check if bower is installed, prompt to install if not');
 
   
 program.parse(process.argv);
@@ -194,3 +197,54 @@ if (!process.argv.slice(2).length) {
     console.log('');
     program.help();
   }
+
+if(program.bower){
+	console.log(colors.verbose('checking for bower...'));
+	var child = exec('npm list -g bower');
+	child.stdout.on('data',function(data){
+		if(data.indexOf('(empty)') !== -1){
+			
+			prompt.message = '';
+	    	prompt.delimiter = '';
+	    	prompt.start();
+	    	
+	    	prompt.get([{
+		      		name: 'bower',
+		      		description: colors.info('Bower is not installed, and is required. Would you like to install it now?'),
+		      		required: true,
+		      		default: 'yes'
+		    	}], function (err, result) {
+			    	// Check response
+			    	if(result.bower == 'yes'){
+			    		console.log('');
+			    		installBower();
+			    		
+			    	} else {
+			    		console.log(colors.error('Bower is required to use Spork. Please install it before continuing'));
+			    		process.exit(1);
+			    	}
+			    	
+			    	
+			});
+		} else {
+			console.log(colors.info('Yay! Bower is installed!'));
+		}
+
+	});
+	child.stderr.on('data', function(data){
+		console.log(colors.error(data));
+	});
+}
+
+// Methods
+function installBower(){
+	console.log(colors.info('Installing Bower. Please Wait...'));
+	var child = exec('npm install -g bower');
+	child.stdout.on('data',function(data){
+		console.log(colors.data(data));
+	});
+	child.stderr.on('data',function(data){
+		console.log(colors.error(data));
+	});
+}
+
