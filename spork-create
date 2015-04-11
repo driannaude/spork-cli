@@ -274,7 +274,7 @@ function deleteFolderRecursive(path,callback) {
 
 function checkIfBowerIsInstalled(){
   console.log(colors.verbose('Checking if package Bower is installed...'));
-  var child = execSync('npm list -g bower');
+  var child = execSync('npm list -g bower --depth=0');
   child.stdout.on('data',function(data){
     if(data.indexOf('(empty)') !== -1){
       

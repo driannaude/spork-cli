@@ -200,7 +200,7 @@ if (!process.argv.slice(2).length) {
 
 if(program.bower){
 	console.log(colors.verbose('checking for bower...'));
-	var child = exec('npm list -g bower');
+	var child = exec('npm list -g burp --depth=0');
 	child.stdout.on('data',function(data){
 		if(data.indexOf('(empty)') !== -1){
 			
