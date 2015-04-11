@@ -18,7 +18,7 @@ npm install spork-cli
 
 ---
 
-### Building Spork
+### Creating a Spork
 
 ###### The Recommended Way:
 
