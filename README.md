@@ -1,3 +1,5 @@
+> ATTENTION: This repo is no longer maintained. It was a fun experiment but ultimately [Yeoman](http://yeoman.io) is still the best tool for the job :)
+
 ## Spork - An Automation-Ready Project Generator.
 
 ![spork image](http://notanengineer.com/blog/wp-content/uploads/2015/04/spork.png "spork-cli interface")
